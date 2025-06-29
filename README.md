@@ -177,6 +177,47 @@ The tool will display relevant error messages when rate limits are exceeded.
 
 ## Troubleshooting
 
+### ES Module vs CommonJS Error
+
+If you see `ReferenceError: exports is not defined in ES module scope`, this means your `package.json` has `"type": "module"` but TypeScript is compiling to CommonJS. Remove the `"type": "module"` line from your package.json:
+
+```json
+{
+  "name": "commonsku",
+  // Remove this line: "type": "module",
+  "scripts": {
+    "start": "yarn build && node build/index.js",
+    "build": "tsc"
+  }
+}
+```
+
+### Cannot find module 'dist/index.js' Error
+
+If you see an error about missing `dist/index.js`, this means your `package.json` scripts are pointing to the wrong output directory. The build outputs to `build/` not `dist/`. Update your package.json scripts:
+
+```json
+{
+  "scripts": {
+    "start": "yarn build && node build/index.js",
+    "build": "tsc",
+    "clean": "rm -rf build"
+  }
+}
+```
+
+### Module Resolution Errors
+
+If you encounter `ERR_MODULE_NOT_FOUND` errors:
+
+```bash
+# Clean build directory and rebuild
+rm -rf build dist
+yarn build
+```
+
+Make sure your `tsconfig.json` uses `"module": "commonjs"` for Node.js CLI compatibility.
+
 ### Build Output Directory
 
 The project is configured to output compiled files to the `build/` directory. To clean and rebuild:
