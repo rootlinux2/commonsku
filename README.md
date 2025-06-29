@@ -42,9 +42,13 @@ GITHUB_TOKEN=your_github_token_here
 
 ### Build the Project
 
+The TypeScript code compiles to the `build/` directory:
+
 ```bash
 yarn build
 ```
+
+This will create compiled JavaScript files in the `build/` directory that can be executed with Node.js.
 
 ### Run Commands
 
@@ -106,8 +110,9 @@ commonsku/
 │   └── index.ts           # CLI entry point
 ├── test/
 │   └── githubService.test.ts # Jest tests
-├── dist/                   # Compiled JavaScript (after build)
+├── build/                  # Compiled JavaScript output (after yarn build)
 ├── .env                   # Environment variables
+├── .yarnrc.yml            # Yarn configuration
 ├── package.json
 ├── tsconfig.json
 ├── jest.config.js
@@ -171,6 +176,14 @@ The application includes comprehensive error handling:
 The tool will display relevant error messages when rate limits are exceeded.
 
 ## Troubleshooting
+
+### Build Output Directory
+
+The project is configured to output compiled files to the `build/` directory. If you need to change this:
+
+1. Update `tsconfig.json` to modify the `outDir` setting
+2. Update `package.json` scripts to reference the correct output path
+3. Clean and rebuild: `yarn clean && yarn build`
 
 ### Yarn PnP Corepack Error
 
