@@ -170,6 +170,32 @@ The application includes comprehensive error handling:
 
 The tool will display relevant error messages when rate limits are exceeded.
 
+## Troubleshooting
+
+### Yarn PnP Corepack Error
+
+If you encounter a corepack error with `.pnp.cjs`, follow these steps:
+
+```bash
+# Remove Yarn PnP files
+rm -rf .pnp.cjs .pnp
+
+# Clean yarn cache
+yarn cache clean
+
+# Remove node_modules and yarn.lock
+rm -rf node_modules yarn.lock
+
+# Reinstall dependencies
+yarn install
+```
+
+Alternatively, you can disable Yarn PnP by creating a `.yarnrc.yml` file:
+
+```yaml
+nodeLinker: node-modules
+```
+
 ## Contributing
 
 1. Fork the repository
