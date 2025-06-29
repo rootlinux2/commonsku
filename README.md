@@ -17,7 +17,7 @@ A TypeScript-based CLI tool for interacting with the GitHub REST API. This proje
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd github-api-project
+cd commonsku
 
 # Install dependencies
 yarn install
@@ -99,7 +99,7 @@ yarn dev user octocat
 ## Project Structure
 
 ```
-github-api-project/
+commonsku/
 ├── src/
 │   ├── config.ts           # Environment configuration
 │   ├── githubService.ts    # GitHub API service class

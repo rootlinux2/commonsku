@@ -1,5 +1,5 @@
 {
-  "name": "github-api-project",
+  "name": "commonsku",
   "version": "1.0.0",
   "main": "dist/index.js",
   "type": "module",
