@@ -90,16 +90,6 @@ For development with auto-reload:
 yarn dev user octocat
 ```
 
-## Scripts
-
-- `yarn build` - Compile TypeScript to JavaScript
-- `yarn start` - Build and run the CLI
-- `yarn dev` - Run in development mode with ts-node
-- `yarn test` - Run the test suite
-- `yarn test:watch` - Run tests in watch mode
-- `yarn clean` - Remove build artifacts
-- `yarn lint` - Type check without compilation
-
 ## Project Structure
 
 ```
@@ -142,6 +132,16 @@ commonsku/
 - `GitHubUser` - Complete user profile data
 - `GitHubRepo` - Repository information and statistics
 
+## Scripts
+
+- `yarn build` - Compile TypeScript to JavaScript (outputs to `build/` directory)
+- `yarn start` - Build and run the CLI
+- `yarn dev` - Run in development mode with ts-node
+- `yarn test` - Run the test suite
+- `yarn test:watch` - Run tests in watch mode
+- `yarn clean` - Remove build artifacts
+- `yarn lint` - Type check without compilation
+
 ## Testing
 
 Run the test suite:
@@ -179,11 +179,13 @@ The tool will display relevant error messages when rate limits are exceeded.
 
 ### Build Output Directory
 
-The project is configured to output compiled files to the `build/` directory. If you need to change this:
+The project is configured to output compiled files to the `build/` directory. To clean and rebuild:
 
-1. Update `tsconfig.json` to modify the `outDir` setting
-2. Update `package.json` scripts to reference the correct output path
-3. Clean and rebuild: `yarn clean && yarn build`
+```bash
+# Remove build directory and rebuild
+rm -rf build
+yarn build
+```
 
 ### Yarn PnP Corepack Error
 
