@@ -2,7 +2,7 @@ import { GitHubService } from '../src/githubService';
 import { describe, it, expect, beforeAll, jest } from '@jest/globals';
 
 describe('GitHubService', () => {
-  // Set longer timeout for API calls
+  // Set longer timeout for API calls directly in the test file
   jest.setTimeout(15000);
   
   let service: GitHubService;
