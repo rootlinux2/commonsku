@@ -38,6 +38,10 @@ export interface GitHubServiceOptions {
   enableCache?: boolean;
   /** Cache TTL in seconds */
   cacheTtl?: number;
+  /** Minimum rate limit remaining before throttling (default: 100) */
+  rateLimitThreshold?: number;
+  /** Whether to throw an error when rate limit is exceeded (default: false) */
+  failOnRateLimit?: boolean;
 }
 
 /**
@@ -48,6 +52,10 @@ export class GitHubService {
   private cache: Map<string, { data: any; expiry: number }> = new Map();
   private readonly cacheTtl: number;
   private readonly enableCache: boolean;
+  private readonly rateLimitThreshold: number;
+  private readonly failOnRateLimit: boolean;
+  private rateLimitRemaining: number | null = null;
+  private rateLimitReset: number | null = null;
 
   /**
    * Creates a new instance of the GitHub service
@@ -63,6 +71,8 @@ export class GitHubService {
 
     this.enableCache = options.enableCache ?? false;
     this.cacheTtl = (options.cacheTtl ?? 300) * 1000; // Convert to milliseconds
+    this.rateLimitThreshold = options.rateLimitThreshold ?? 100;
+    this.failOnRateLimit = options.failOnRateLimit ?? false;
 
     try {
       const octokitOptions: any = {
@@ -100,6 +110,75 @@ export class GitHubService {
   }
 
   /**
+   * Checks if we're approaching the rate limit and handles accordingly
+   * @throws Error if rate limit is exceeded and failOnRateLimit is true
+   * @returns Promise that resolves when it's safe to make a request
+   */
+  private async checkRateLimit(): Promise<void> {
+    // Skip check if we haven't fetched rate limit info yet or if we have plenty of requests left
+    if (this.rateLimitRemaining === null || this.rateLimitRemaining > this.rateLimitThreshold) {
+      return;
+    }
+
+    // If we're below threshold, check if the rate limit has reset
+    const now = Math.floor(Date.now() / 1000);
+    if (this.rateLimitReset !== null && now < this.rateLimitReset) {
+      // We're still within the rate limit window and running low on requests
+      if (this.rateLimitRemaining <= 0) {
+        const waitTime = (this.rateLimitReset - now) * 1000;
+        if (this.failOnRateLimit) {
+          throw new Error(`GitHub API rate limit exceeded. Resets in ${Math.ceil(waitTime / 1000)} seconds.`);
+        }
+        
+        console.warn(`GitHub API rate limit reached. Waiting ${Math.ceil(waitTime / 1000)} seconds before retrying.`);
+        // Wait until rate limit resets
+        await new Promise(resolve => setTimeout(resolve, waitTime + 1000)); // Add 1 second buffer
+      } else {
+        console.warn(`GitHub API rate limit approaching: ${this.rateLimitRemaining} requests remaining.`);
+      }
+    }
+
+    // Refresh rate limit data if we're close to threshold
+    if (this.rateLimitRemaining <= this.rateLimitThreshold) {
+      await this.updateRateLimit();
+    }
+  }
+
+  /**
+   * Updates the internal rate limit tracking data
+   */
+  private async updateRateLimit(): Promise<void> {
+    try {
+      const { remaining, reset } = await this.getRateLimit();
+      this.rateLimitRemaining = remaining;
+      this.rateLimitReset = reset;
+    } catch (error) {
+      console.error('Failed to update rate limit information', error);
+    }
+  }
+
+  /**
+   * Executes an API request with rate limit protection
+   * @param requestFn - Function that performs the API request
+   * @returns The result of the API request
+   */
+  private async executeWithRateLimitProtection<T>(requestFn: () => Promise<T>): Promise<T> {
+    await this.checkRateLimit();
+    
+    const result = await requestFn();
+    
+    // Update rate limit info after request if not set
+    if (this.rateLimitRemaining === null) {
+      void this.updateRateLimit();
+    } else {
+      // Decrement our local counter to keep track between requests
+      this.rateLimitRemaining = Math.max(0, this.rateLimitRemaining - 1);
+    }
+    
+    return result;
+  }
+
+  /**
    * Gets or sets data in the cache
    * @param key - Cache key
    * @param fetchFn - Function to fetch data if not in cache
@@ -107,7 +186,7 @@ export class GitHubService {
    */
   private async withCache<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
     if (!this.enableCache) {
-      return fetchFn();
+      return this.executeWithRateLimitProtection(fetchFn);
     }
 
     const cached = this.cache.get(key);
@@ -117,7 +196,7 @@ export class GitHubService {
       return cached.data as T;
     }
 
-    const data = await fetchFn();
+    const data = await this.executeWithRateLimitProtection(fetchFn);
     this.cache.set(key, { data, expiry: now + this.cacheTtl });
     return data;
   }
@@ -257,6 +336,11 @@ export class GitHubService {
     try {
       const response = await this.octokit.rateLimit.get();
       const { limit, remaining, reset } = response.data.rate;
+      
+      // Update internal tracking
+      this.rateLimitRemaining = remaining;
+      this.rateLimitReset = reset;
+      
       return { limit, remaining, reset };
     } catch (error: unknown) {
       this.handleError(error, 'Failed to fetch rate limit');
