@@ -21,6 +21,9 @@ cd commonsku
 
 # Install dependencies
 yarn install
+
+# Build the project
+yarn build
 ```
 
 ## Configuration
@@ -40,45 +43,53 @@ GITHUB_TOKEN=your_github_token_here
 
 ## Usage
 
-### Build the Project
-
-The TypeScript code compiles to the `build/` directory:
-
 ```bash
-yarn build
+yarn start <command> [arguments]
 ```
 
-This will create compiled JavaScript files in the `build/` directory that can be executed with Node.js.
+### Commands
 
-### Run Commands
+- **user**: Get information about a GitHub user
+  ```bash
+  yarn start user <username>
+  ```
 
-#### Get User Information
+- **repo**: Get information about a GitHub repository
+  ```bash
+  yarn start repo <owner> <repo>
+  ```
+
+- **repos**: Get a list of repositories for a user
+  ```bash
+  yarn start repos <username> [limit]
+  ```
+
+- **contributors**: Get a list of contributors for a repository
+  ```bash
+  yarn start contributors <owner> <repo> [limit]
+  ```
+
+- **rate**: Get information about your current GitHub API rate limit
+  ```bash
+  yarn start rate
+  ```
+
+### Examples
+
 ```bash
-yarn start user <username>
-
-# Example
+# Get information about a GitHub user
 yarn start user octocat
-```
 
-#### Get Repository Information
-```bash
-yarn start repo <owner> <repo>
-
-# Example
+# Get information about a repository
 yarn start repo microsoft vscode
-```
 
-#### List User Repositories
-```bash
-yarn start repos <username> [limit]
-
-# Examples
-yarn start repos octocat
+# Get the 10 most recently updated repositories for a user
 yarn start repos octocat 10
-```
 
-#### Check API Rate Limit
-```bash
+# Get the top 2 contributors for a repository
+yarn start contributors octocat Hello-World 2
+
+# Check your API rate limit
 yarn start rate
 ```
 
