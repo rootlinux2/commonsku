@@ -8,7 +8,7 @@
     "start": "node build/index.js",
     "build": "tsc",
     "dev": "node --loader ts-node/esm src/index.ts",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "jest",
     "test:watch": "jest --watch",
     "clean": "rm -rf build",
     "lint": "eslint . --fix",
