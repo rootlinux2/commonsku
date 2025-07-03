@@ -2,6 +2,7 @@
 import eslintPkg from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import prettierPlugin from 'eslint-plugin-prettier';
 
 const eslintConfigs = eslintPkg.configs;
 const tsConfigs = tsPlugin.configs;
@@ -16,10 +17,15 @@ export default [
         tsconfigRootDir: process.cwd(),
       },
     },
+    plugins: {
+      // 👇 Register the plugin with a name used in rules
+      '@typescript-eslint': tsPlugin,
+      prettier: prettierPlugin,
+    },
     rules: {
       ...eslintConfigs.recommended.rules,
       ...tsConfigs.recommended.rules,
-      ...tsConfigs['recommended-type-checked'].rules, // Correctly access TypeScript rules
+      ...tsConfigs['recommended-type-checked'].rules,
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },
@@ -42,17 +48,6 @@ export default [
     files: ['**/*.test.ts', '**/*.spec.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
-  {
-    files: ['*.config.{js,ts}', 'jest.config.js'],
-    languageOptions: {
-      parserOptions: {
-        project: null,
-      },
-    },
-    rules: {
-      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 ];
