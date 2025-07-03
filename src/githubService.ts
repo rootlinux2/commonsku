@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/rest';
+import type { components } from '@octokit/openapi-types';
 import { GITHUB_TOKEN } from './config.js';
 
 // Ensure GITHUB_TOKEN is a string at runtime
@@ -10,84 +11,18 @@ function getSafeGitHubToken(): string {
 }
 
 // GitHub API response interfaces
-export interface GitHubUser {
-  login: string;
-  id: number;
-  avatar_url: string;
-  url: string;
-  html_url: string;
-  name: string | null;
-  company: string | null;
-  blog: string | null;
-  location: string | null;
-  email: string | null;
-  bio: string | null;
-  public_repos: number;
-  public_gists: number;
-  followers: number;
-  following: number;
-  created_at: string;
-  updated_at: string;
-}
+export type GitHubUser = components['schemas']['public-user'];
 
-export interface GitHubRepo {
-  id: number;
-  name: string;
-  full_name: string;
-  owner: {
-    login: string;
-    id: number;
-    avatar_url: string;
-  };
-  private: boolean;
-  html_url: string;
-  description: string | null;
-  fork: boolean;
-  url: string;
-  created_at: string | null; // Updated to allow null
-  updated_at: string | null; // Updated to allow null
-  pushed_at: string | null;  // Updated to allow null
-  clone_url: string;
-  size: number;
-  stargazers_count: number;
-  watchers_count: number;
-  language: string | null;
-  forks_count: number;
-  open_issues_count: number;
-  license: {
-    key: string;
-    name: string;
-  } | null;
-}
+export type GitHubRepo = components['schemas']['repository']; 
 class GitHubServiceError extends Error {
   constructor(context: string, originalError: Error) {
     super(`${context}: ${originalError.message}`);
     this.name = 'GitHubServiceError';
   }
 }
-export interface GitHubRepoContributor {
-  login: string;
-  id: number;
-  node_id: string;
-  avatar_url: string;
-  gravatar_id: string | null;
-  url: string;
-  html_url: string;
-  followers_url: string;
-  following_url: string;
-  gists_url: string;
-  starred_url: string;
-  subscriptions_url: string;
-  organizations_url: string;
-  repos_url: string;
-  events_url: string;
-  received_events_url: string;
-  type: string;
-  site_admin: boolean;
-  contributions: number;
-  email?: string;
-  name?: string;
-}
+
+// Use Octokit's own type definition for contributors
+export type GitHubRepoContributor = components['schemas']['contributor'];
 
 export class GitHubService {
   private octokit: Octokit;
@@ -118,26 +53,7 @@ export class GitHubService {
   async getUser(username: string): Promise<GitHubUser> {
     try {
       const response = await this.octokit.users.getByUsername({ username });
-      const user = response.data;
-      return {
-        login: user.login,
-        id: user.id,
-        avatar_url: user.avatar_url,
-        url: user.url,
-        html_url: user.html_url,
-        name: user.name ?? null,
-        company: user.company ?? null,
-        blog: user.blog ?? null,
-        location: user.location ?? null,
-        email: user.email ?? null,
-        bio: user.bio ?? null,
-        public_repos: user.public_repos,
-        public_gists: user.public_gists,
-        followers: user.followers,
-        following: user.following,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-      };
+      return response.data as GitHubUser;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch user ${username}`);
     }
@@ -146,7 +62,7 @@ export class GitHubService {
   async getRepo(owner: string, repo: string): Promise<GitHubRepo> {
     try {
       const response = await this.octokit.repos.get({ owner, repo });
-      return response.data;
+      return response.data as GitHubRepo;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch repository ${owner}/${repo}`);
     }
@@ -179,23 +95,19 @@ export class GitHubService {
 
         if (itemsNeeded <= 0) break;
 
-        const response = await this.client.get<Array<GitHubRepoContributor>>(
-          `/repos/${owner}/${repo}/contributors`,
-          {
-            params: {
-              per_page: itemsNeeded,
-              page: currentPage,
-              // Ensure we get the top contributors first (most contributions)
-              sort: 'contributions',
-              direction: 'desc',
-            },
-          },
-        );
+        const response = await this.octokit.repos.listContributors({
+          owner,
+          repo,
+          per_page: itemsNeeded,
+          page: currentPage,
+          anon: "false", // Whether to include anonymous contributors
+        });
 
-        resultContributors.push(...response.data);
+        const contributors = response.data as GitHubRepoContributor[];
+        resultContributors.push(...contributors);
 
         // If we got fewer results than requested, there are no more contributors
-        if (response.data.length < itemsNeeded) {
+        if (contributors.length < itemsNeeded) {
           break;
         }
       }
@@ -245,3 +157,4 @@ export class GitHubService {
     }
   }
 }
+      
