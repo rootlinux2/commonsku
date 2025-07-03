@@ -55,6 +55,30 @@ export interface GitHubRepo {
   default_branch: string;
 }
 
+export interface GitHubRepoContributor {
+  login: string;
+  id: number;
+  node_id: string;
+  avatar_url: string;
+  gravatar_id: string | null;
+  url: string;
+  html_url: string;
+  followers_url: string;
+  following_url: string;
+  gists_url: string;
+  starred_url: string;
+  subscriptions_url: string;
+  organizations_url: string;
+  repos_url: string;
+  events_url: string;
+  received_events_url: string;
+  type: string;
+  site_admin: boolean;
+  contributions: number;
+  email?: string;
+  name?: string;
+}
+
 export class GitHubService {
   private client: AxiosInstance;
 
@@ -105,6 +129,65 @@ export class GitHubService {
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch repository ${owner}/${repo}`);
+    }
+  }
+
+  async getRepoContributors(
+    owner: string,
+    repo: string,
+    limit: number,
+  ): Promise<Array<GitHubRepoContributor>> {
+    try {
+      // Early return for invalid limit
+      if (limit <= 0) {
+        return [];
+      }
+
+      const resultContributors: GitHubRepoContributor[] = [];
+      const perPage = Math.min(100, limit); // No need to fetch 100 if limit is smaller
+
+      // Calculate how many pages we need to fetch
+      const totalPages = Math.ceil(limit / perPage);
+
+      // Fetch only the pages we need
+      for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
+        // For the last page, we might need fewer items
+        const itemsNeeded =
+          currentPage === totalPages
+            ? limit - resultContributors.length
+            : perPage;
+
+        if (itemsNeeded <= 0) break;
+
+        const response = await this.client.get<Array<GitHubRepoContributor>>(
+          `/repos/${owner}/${repo}/contributors`,
+          {
+            params: {
+              per_page: itemsNeeded,
+              page: currentPage,
+              // Ensure we get the top contributors first (most contributions)
+              sort: 'contributions',
+              direction: 'desc',
+            },
+          },
+        );
+
+        resultContributors.push(...response.data);
+
+        // If we got fewer results than requested, there are no more contributors
+        if (response.data.length < itemsNeeded) {
+          break;
+        }
+      }
+
+      // No need to sort as GitHub API returns them sorted by contributions
+      // when using sort=contributions&direction=desc
+      return resultContributors;
+    } catch (error: unknown) {
+      this.handleError(
+        error,
+        `Failed to fetch contributors for repository ${owner}/${repo}`,
+      );
     }
   }
 
