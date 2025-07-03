@@ -8,7 +8,7 @@
     "start": "node build/index.js",
     "build": "tsc",
     "dev": "node --loader ts-node/esm src/index.ts",
-    "test": "jest --config jest.config.mjs",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "jest --watch",
     "clean": "rm -rf build",
     "lint": "eslint . --fix",
@@ -37,7 +37,7 @@
     "source-map-support": "^0.5.21",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@octokit/core": "^7.0.2",
