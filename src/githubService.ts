@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { GITHUB_TOKEN } from './config';
+import { GITHUB_TOKEN } from './config.js';
 
 const BASE_URL = 'https://api.github.com';
 

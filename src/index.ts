@@ -1,4 +1,4 @@
-import { GitHubService } from './githubService';
+import { GitHubService } from './githubService.js';
 
 async function main() {
   const args = process.argv.slice(2);
