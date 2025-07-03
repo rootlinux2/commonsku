@@ -9,6 +9,9 @@ const tsConfigs = tsPlugin.configs;
 
 export default [
   {
+    ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.yarn/**'],
+  },
+  {
     files: ['**/*.{js,ts}'],
     languageOptions: {
       parser: tsParser,

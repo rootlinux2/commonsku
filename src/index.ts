@@ -41,7 +41,9 @@ Examples:
         console.log(`Public Repos: ${user.public_repos}`);
         console.log(`Followers: ${user.followers}`);
         console.log(`Following: ${user.following}`);
-        console.log(`Created: ${new Date(user.created_at).toLocaleDateString()}`);
+        console.log(
+        `Created: ${new Date(user.created_at).toLocaleDateString()}`,
+      );
         console.log(`Profile: ${user.html_url}`);
         break;
       }
@@ -61,8 +63,12 @@ Examples:
         console.log(`Forks: ${repo.forks_count}`);
         console.log(`Open Issues: ${repo.open_issues_count}`);
         console.log(`License: ${repo.license?.name || 'N/A'}`);
-        console.log(`Created: ${new Date(repo.created_at).toLocaleDateString()}`);
-        console.log(`Updated: ${new Date(repo.updated_at).toLocaleDateString()}`);
+        console.log(
+        `Created: ${new Date(repo.created_at).toLocaleDateString()}`,
+      );
+        console.log(
+        `Updated: ${new Date(repo.updated_at).toLocaleDateString()}`,
+      );
         console.log(`URL: ${repo.html_url}`);
         break;
       }
@@ -78,7 +84,9 @@ Examples:
         repos.forEach((repo, index) => {
           console.log(`\n${index + 1}. ${repo.name}`);
           console.log(`   ${repo.description || 'No description'}`);
-          console.log(`   ⭐ ${repo.stargazers_count} 🍴 ${repo.forks_count} 📝 ${repo.language || 'Unknown'}`);
+          console.log(
+          `   ⭐ ${repo.stargazers_count} 🍴 ${repo.forks_count} 📝 ${repo.language || 'Unknown'}`,
+        );
           console.log(`   ${repo.html_url}`);
         });
         break;
@@ -89,17 +97,23 @@ Examples:
         console.log('\n=== API Rate Limit ===');
         console.log(`Limit: ${rateLimit.limit} requests/hour`);
         console.log(`Remaining: ${rateLimit.remaining}`);
-        console.log(`Reset: ${new Date(rateLimit.reset * 1000).toLocaleString()}`);
+        console.log(
+        `Reset: ${new Date(rateLimit.reset * 1000).toLocaleString()}`,
+      );
         break;
       }
 
       default:
         console.error(`Error: Unknown command '${command}'`);
-        console.log('Use: yarn start (without arguments) to see usage information');
+        console.log(
+        'Use: yarn start (without arguments) to see usage information',
+      );
         process.exit(1);
     }
   } catch (error) {
-    console.error(`\nError: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      `\nError: ${error instanceof Error ? error.message : String(error)}`,
+    );
     process.exit(1);
   }
 }

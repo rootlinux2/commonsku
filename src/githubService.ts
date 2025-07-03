@@ -62,9 +62,9 @@ export class GitHubService {
     this.client = axios.create({
       baseURL: BASE_URL,
       headers: {
-        'Accept': 'application/vnd.github.v3+json',
+        Accept: 'application/vnd.github.v3+json',
         'User-Agent': 'GitHub-API-Client',
-        ...(GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {}),
+        ...(GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}),
       },
     });
   }
@@ -89,28 +89,47 @@ export class GitHubService {
 
   async getRepo(owner: string, repo: string): Promise<GitHubRepo> {
     try {
-      const response = await this.client.get<GitHubRepo>(`/repos/${owner}/${repo}`);
+      const response = await this.client.get<GitHubRepo>(
+        `/repos/${owner}/${repo}`,
+      );
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch repository ${owner}/${repo}`);
     }
   }
 
-  async getUserRepos(username: string, per_page: number = 30): Promise<GitHubRepo[]> {
+  async getUserRepos(
+    username: string,
+    per_page: number = 30,
+  ): Promise<GitHubRepo[]> {
     try {
-      const response = await this.client.get<GitHubRepo[]>(`/users/${username}/repos`, {
-        params: { per_page, sort: 'updated', direction: 'desc' },
-      });
+      const response = await this.client.get<GitHubRepo[]>(
+        `/users/${username}/repos`,
+        {
+          params: { per_page, sort: 'updated', direction: 'desc' },
+        },
+      );
       return response.data;
     } catch (error: unknown) {
-      this.handleError(error, `Failed to fetch repositories for user ${username}`);
+      this.handleError(
+        error,
+        `Failed to fetch repositories for user ${username}`,
+      );
     }
   }
 
-  async getRateLimit(): Promise<{ limit: number; remaining: number; reset: number }> {
+  async getRateLimit(): Promise<{
+    limit: number;
+    remaining: number;
+    reset: number;
+  }> {
     try {
       const response = await this.client.get('/rate_limit');
-      const rateData = response.data.rate as { limit: number; remaining: number; reset: number };
+      const rateData = response.data.rate as {
+        limit: number;
+        remaining: number;
+        reset: number;
+      };
       const { limit, remaining, reset } = rateData;
       return { limit, remaining, reset };
     } catch (error: unknown) {
