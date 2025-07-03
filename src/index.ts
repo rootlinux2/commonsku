@@ -12,12 +12,14 @@ Usage:
   yarn start user <username>                    - Get user information
   yarn start repo <owner> <repo>                - Get repository information  
   yarn start repos <username> [limit]           - Get user's repositories
+  yarn start contributors <owner> <repo> [limit] - Get repository contributors
   yarn start rate                               - Get API rate limit info
 
 Examples:
   yarn start user octocat
   yarn start repo microsoft vscode
   yarn start repos octocat 10
+  yarn start contributors microsoft vscode 20
   yarn start rate
     `);
     process.exit(1);
@@ -90,6 +92,23 @@ Examples:
           `   ⭐ ${repo.stargazers_count} 🍴 ${repo.forks_count} 📝 ${repo.language || 'Unknown'}`,
         );
           console.log(`   ${repo.html_url}`);
+        });
+        break;
+      }
+
+      case 'contributors': {
+        if (!args[1] || !args[2]) {
+          console.error('Error: Owner and repository name are required');
+          process.exit(1);
+        }
+        const limit = args[3] ? parseInt(args[3], 10) : 10;
+        const contributors = await service.getRepoContributors(args[1], args[2], limit);
+        console.log(`\n=== Contributors for ${args[1]}/${args[2]} (${contributors.length}) ===`);
+        contributors.forEach((contributor, index) => {
+          console.log(`\n${index + 1}. ${contributor.login}`);
+          console.log(`   Contributions: ${contributor.contributions}`);
+          console.log(`   Profile: ${contributor.html_url}`);
+          console.log(`   Avatar: ${contributor.avatar_url}`);
         });
         break;
       }
