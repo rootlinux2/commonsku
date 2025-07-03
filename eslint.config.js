@@ -38,7 +38,9 @@ export default [
       ...eslintConfigs.recommended.rules,
       ...tsConfigs.recommended.rules,
       ...tsConfigs['recommended-type-checked'].rules,
-
+      '@typescript-eslint/no-throw-literal': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },

@@ -1,7 +1,13 @@
-import axios, { AxiosInstance } from 'axios';
+import { Octokit } from 'octokit';
 import { GITHUB_TOKEN } from './config.js';
 
-const BASE_URL = 'https://api.github.com';
+// Ensure GITHUB_TOKEN is a string at runtime
+function getSafeGitHubToken(): string {
+  if (typeof GITHUB_TOKEN !== 'string' || !GITHUB_TOKEN) {
+    throw new Error('GITHUB_TOKEN must be a non-empty string');
+  }
+  return GITHUB_TOKEN;
+}
 
 // GitHub API response interfaces
 export interface GitHubUser {
@@ -52,45 +58,42 @@ export interface GitHubRepo {
     key: string;
     name: string;
   } | null;
-  default_branch: string;
 }
-
+class GitHubServiceError extends Error {
+  constructor(context: string, originalError: Error) {
+    super(`${context}: ${originalError.message}`);
+    this.name = 'GitHubServiceError';
+  }
+}
 export class GitHubService {
-  private client: AxiosInstance;
+  private octokit: Octokit;
 
   constructor() {
-    this.client = axios.create({
-      baseURL: BASE_URL,
-      headers: {
-        Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'GitHub-API-Client',
-        ...(GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}),
-      },
-    });
+    try {
+      this.octokit = new Octokit({
+        auth: getSafeGitHubToken(),
+        userAgent: 'GitHub-API-Client',
+      });
+    } catch (error: unknown) {
+      throw new Error(
+        `Failed to initialize Octokit: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   private handleError(error: unknown, context: string): never {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as import('axios').AxiosError;
-      let message: string = axiosError.message;
-      if (
-        axiosError.response &&
-        axiosError.response.data &&
-        typeof axiosError.response.data === 'object' &&
-        'message' in axiosError.response.data
-      ) {
-        message =
-          (axiosError.response.data as { message?: string }).message ||
-          axiosError.message;
-      }
-      throw new Error(`${context}: ${message}`);
+    if (error instanceof Error) {
+      throw new GitHubServiceError(context, error);
     }
-    throw error;
+    throw new GitHubServiceError(
+      context,
+      new Error('An unknown error occurred'),
+    );
   }
 
   async getUser(username: string): Promise<GitHubUser> {
     try {
-      const response = await this.client.get<GitHubUser>(`/users/${username}`);
+      const response = await this.octokit.rest.users.getByUsername({ username });
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch user ${username}`);
@@ -99,9 +102,7 @@ export class GitHubService {
 
   async getRepo(owner: string, repo: string): Promise<GitHubRepo> {
     try {
-      const response = await this.client.get<GitHubRepo>(
-        `/repos/${owner}/${repo}`,
-      );
+      const response = await this.octokit.rest.repos.get({ owner, repo });
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch repository ${owner}/${repo}`);
@@ -113,12 +114,12 @@ export class GitHubService {
     per_page: number = 30,
   ): Promise<GitHubRepo[]> {
     try {
-      const response = await this.client.get<GitHubRepo[]>(
-        `/users/${username}/repos`,
-        {
-          params: { per_page, sort: 'updated', direction: 'desc' },
-        },
-      );
+      const response = await this.octokit.rest.repos.listForUser({
+        username,
+        per_page,
+        sort: 'updated',
+        direction: 'desc',
+      });
       return response.data;
     } catch (error: unknown) {
       this.handleError(
@@ -134,11 +135,8 @@ export class GitHubService {
     reset: number;
   }> {
     try {
-      const response = await this.client.get<{
-        rate: { limit: number; remaining: number; reset: number };
-      }>('/rate_limit');
-      const rateData = response.data.rate;
-      const { limit, remaining, reset } = rateData;
+      const response = await this.octokit.rest.rateLimit.get();
+      const { limit, remaining, reset } = response.data.rate;
       return { limit, remaining, reset };
     } catch (error: unknown) {
       this.handleError(error, 'Failed to fetch rate limit');
