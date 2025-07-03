@@ -66,10 +66,10 @@ Examples:
         console.log(`Open Issues: ${repo.open_issues_count}`);
         console.log(`License: ${repo.license?.name || 'N/A'}`);
         console.log(
-        `Created: ${new Date(repo.created_at).toLocaleDateString()}`,
+        `Created: ${repo.created_at ? new Date(repo.created_at).toLocaleDateString() : 'N/A'}`,
       );
         console.log(
-        `Updated: ${new Date(repo.updated_at).toLocaleDateString()}`,
+        `Updated: ${repo.updated_at ? new Date(repo.updated_at).toLocaleDateString() : 'N/A'}`,
       );
         console.log(`URL: ${repo.html_url}`);
         break;

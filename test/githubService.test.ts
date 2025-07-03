@@ -11,8 +11,8 @@ describe('GitHubService', () => {
   });
 
   // Note: Uncomment and add your GitHub token to .env to run live tests
-  // it('should fetch GitHub user data', async () => {
-  //   const user = await service.getUser('octocat');
-  //   expect(user.login).toBe('octocat');
-  // });
+  it('should fetch GitHub user data', async () => {
+    const user = await service.getUser('octocat');
+    expect(user.login).toBe('octocat');
+  });
 });

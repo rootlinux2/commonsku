@@ -1,4 +1,4 @@
-import { Octokit } from 'octokit';
+import { Octokit } from '@octokit/rest';
 import { GITHUB_TOKEN } from './config.js';
 
 // Ensure GITHUB_TOKEN is a string at runtime
@@ -44,9 +44,9 @@ export interface GitHubRepo {
   description: string | null;
   fork: boolean;
   url: string;
-  created_at: string;
-  updated_at: string;
-  pushed_at: string;
+  created_at: string | null; // Updated to allow null
+  updated_at: string | null; // Updated to allow null
+  pushed_at: string | null;  // Updated to allow null
   clone_url: string;
   size: number;
   stargazers_count: number;
@@ -93,8 +93,27 @@ export class GitHubService {
 
   async getUser(username: string): Promise<GitHubUser> {
     try {
-      const response = await this.octokit.rest.users.getByUsername({ username });
-      return response.data;
+      const response = await this.octokit.users.getByUsername({ username });
+      const user = response.data;
+      return {
+        login: user.login,
+        id: user.id,
+        avatar_url: user.avatar_url,
+        url: user.url,
+        html_url: user.html_url,
+        name: user.name ?? null,
+        company: user.company ?? null,
+        blog: user.blog ?? null,
+        location: user.location ?? null,
+        email: user.email ?? null,
+        bio: user.bio ?? null,
+        public_repos: user.public_repos,
+        public_gists: user.public_gists,
+        followers: user.followers,
+        following: user.following,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      };
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch user ${username}`);
     }
@@ -102,7 +121,7 @@ export class GitHubService {
 
   async getRepo(owner: string, repo: string): Promise<GitHubRepo> {
     try {
-      const response = await this.octokit.rest.repos.get({ owner, repo });
+      const response = await this.octokit.repos.get({ owner, repo });
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch repository ${owner}/${repo}`);
@@ -114,13 +133,13 @@ export class GitHubService {
     per_page: number = 30,
   ): Promise<GitHubRepo[]> {
     try {
-      const response = await this.octokit.rest.repos.listForUser({
+      const response = await this.octokit.repos.listForUser({
         username,
         per_page,
         sort: 'updated',
         direction: 'desc',
       });
-      return response.data;
+      return response.data as GitHubRepo[];
     } catch (error: unknown) {
       this.handleError(
         error,
@@ -135,7 +154,7 @@ export class GitHubService {
     reset: number;
   }> {
     try {
-      const response = await this.octokit.rest.rateLimit.get();
+      const response = await this.octokit.rateLimit.get();
       const { limit, remaining, reset } = response.data.rate;
       return { limit, remaining, reset };
     } catch (error: unknown) {
