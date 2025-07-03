@@ -3,8 +3,8 @@
     "target": "es2020",
     "module": "esnext",
     "moduleResolution": "node",
-    "outDir": "./build",
-    "rootDir": "./",
+    "outDir": "./build", // Ensure compiled files are placed in the build directory
+    "rootDir": "./src", // Set rootDir to src to ensure proper compilation
     "allowImportingTsExtensions": false,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -23,6 +23,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "test/**/*"],
-  "exclude": ["node_modules", "build", "dist"]
+  "include": ["src/**/*"], // Ensure only source files are included
+  "exclude": ["node_modules", "build", "dist", "test"] // Exclude unnecessary directories
 }

@@ -1,5 +1,8 @@
+/// <reference types="node" />
+import type { Process } from 'node:process';
+
 declare global {
-  const process: NodeJS.Process;
+  const process: Process;
   const console: Console;
 }
 

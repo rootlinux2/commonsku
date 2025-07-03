@@ -71,8 +71,18 @@ export class GitHubService {
 
   private handleError(error: unknown, context: string): never {
     if (axios.isAxiosError(error)) {
-      const axiosError = error as any;
-      const message = axiosError.response?.data?.message || axiosError.message;
+      const axiosError = error as import('axios').AxiosError;
+      let message: string = axiosError.message;
+      if (
+        axiosError.response &&
+        axiosError.response.data &&
+        typeof axiosError.response.data === 'object' &&
+        'message' in axiosError.response.data
+      ) {
+        message =
+          (axiosError.response.data as { message?: string }).message ||
+          axiosError.message;
+      }
       throw new Error(`${context}: ${message}`);
     }
     throw error;
@@ -124,12 +134,10 @@ export class GitHubService {
     reset: number;
   }> {
     try {
-      const response = await this.client.get('/rate_limit');
-      const rateData = response.data.rate as {
-        limit: number;
-        remaining: number;
-        reset: number;
-      };
+      const response = await this.client.get<{
+        rate: { limit: number; remaining: number; reset: number };
+      }>('/rate_limit');
+      const rateData = response.data.rate;
       const { limit, remaining, reset } = rateData;
       return { limit, remaining, reset };
     } catch (error: unknown) {

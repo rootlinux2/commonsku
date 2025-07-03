@@ -8,19 +8,33 @@ const tsConfigs = tsPlugin.configs;
 
 export default [
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.yarn/**'],
+    // Ignore these paths
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.yarn/**',
+      'eslint.config.js',
+      'jest.config.js',
+    ],
   },
   {
     files: ['**/*.{js,ts}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.eslint.json', // Use the new tsconfig for ESLint
+        project: './tsconfig.eslint.json',
         tsconfigRootDir: process.cwd(),
+      },
+      globals: {
+        process: 'readonly', // ✅ Declare process as global manually
+        __dirname: 'readonly', // Optional if you use it
+        require: 'readonly',
+        module: 'readonly',
+        exports: 'readonly',
       },
     },
     plugins: {
-      // 👇 Register the plugin with a name used in rules
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
     },
@@ -28,12 +42,14 @@ export default [
       ...eslintConfigs.recommended.rules,
       ...tsConfigs.recommended.rules,
       ...tsConfigs['recommended-type-checked'].rules,
+
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+
       'prettier/prettier': 'error',
       'no-console': 'off',
       'prefer-const': 'error',
