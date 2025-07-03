@@ -115,6 +115,20 @@ export class GitHubService {
   async getUser(username: string): Promise<GitHubUser> {
     try {
       const response = await this.client.get<GitHubUser>(`/users/${username}`);
+      if (!response.data) {
+        throw new Error(`User ${username} not found`);
+      }
+      if (
+        !response.data.company &&
+        !response.data.blog &&
+        !response.data.location &&
+        !response.data.email &&
+        !response.data.bio
+      ) {
+        throw new Error(
+          `User ${username} has no company, blog, location, email, or bio information available`,
+        );
+      }
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch user ${username}`);
@@ -126,6 +140,9 @@ export class GitHubService {
       const response = await this.client.get<GitHubRepo>(
         `/repos/${owner}/${repo}`,
       );
+      if (!response.data) {
+        throw new Error(`Repository ${owner}/${repo} not found`);
+      }
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, `Failed to fetch repository ${owner}/${repo}`);
@@ -172,6 +189,9 @@ export class GitHubService {
           },
         );
 
+        if (!response.data || response.data.length === 0) {
+          break; // No more contributors to fetch
+        }
         resultContributors.push(...response.data);
 
         // If we got fewer results than requested, there are no more contributors
@@ -202,6 +222,9 @@ export class GitHubService {
           params: { per_page, sort: 'updated', direction: 'desc' },
         },
       );
+      if (!response.data || response.data.length === 0) {
+        throw new Error(`No repositories found for user ${username}`);
+      }
       return response.data;
     } catch (error: unknown) {
       this.handleError(
@@ -220,6 +243,9 @@ export class GitHubService {
       const response = await this.client.get<{
         rate: { limit: number; remaining: number; reset: number };
       }>('/rate_limit');
+      if (!response.data || !response.data.rate) {
+        throw new Error('Rate limit data not found');
+      }
       const rateData = response.data.rate;
       const { limit, remaining, reset } = rateData;
       return { limit, remaining, reset };
