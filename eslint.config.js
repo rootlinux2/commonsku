@@ -27,11 +27,7 @@ export default [
         tsconfigRootDir: process.cwd(),
       },
       globals: {
-        process: 'readonly', // ✅ Declare process as global manually
-        __dirname: 'readonly', // Optional if you use it
-        require: 'readonly',
-        module: 'readonly',
-        exports: 'readonly',
+        process: 'readonly',
       },
     },
     plugins: {
@@ -51,6 +47,7 @@ export default [
       '@typescript-eslint/no-explicit-any': 'warn',
 
       'prettier/prettier': 'error',
+      indent: ['error', 2], // Ensure proper indentation
       'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error',
@@ -59,7 +56,6 @@ export default [
       'comma-dangle': ['error', 'always-multiline'],
       'eol-last': ['error', 'always'],
       'no-trailing-spaces': 'error',
-      indent: ['error', 2],
     },
   },
   {

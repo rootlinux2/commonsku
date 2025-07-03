@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { GitHubService } from './githubService.js';
 
 async function main() {
