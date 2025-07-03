@@ -4,7 +4,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "./build",
-    "rootDir": "./src",
+    "rootDir": "./",
     "allowImportingTsExtensions": false,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -23,6 +23,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "build", "test"]
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["node_modules", "build", "dist"]
 }

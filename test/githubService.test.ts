@@ -1,6 +1,8 @@
 import { GitHubService } from '../src/githubService';
 
 // Simple test for now - can be enhanced later
+import { describe, it, expect } from '@jest/globals';
+
 describe('GitHubService', () => {
   const service = new GitHubService();
 

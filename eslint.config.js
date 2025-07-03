@@ -1,4 +1,3 @@
-// @ts-check
 import eslintPkg from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
@@ -16,7 +15,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json', // Use the new tsconfig for ESLint
         tsconfigRootDir: process.cwd(),
       },
     },
